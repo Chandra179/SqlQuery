@@ -1,0 +1,207 @@
+select * 
+from emp where deptno = 10 
+or comm is not null 
+or sal <= 2000 and deptno=20
+
+
+
+select * 
+from (
+  select sal as salary, 
+  comm as commission from emp
+) as x
+where salary < 5000
+
+
+
+select email,
+  case when last_login is not null then 'ACTIVE'
+       else 'NOT ACTIVE'
+  end as status from account_user
+
+
+
+select * from account_user limit 2
+
+
+
+select email from account_user order by random()
+
+
+// return true if is_active is false
+select coalesce(is_active, true) from account_user
+
+
+
+select name from book_book where num_pages in (656, 245) and (name like '%Steve%')
+
+
+
+// the number 3 is the 3rd column
+select * from account_user order by 3 last_login asc
+
+
+
+select genre_id, publication_date 
+from book_book 
+order by genre_id, publication_date
+
+
+
+// return name and sort by the last two characters in the name field.
+select name
+ from book_book
+ order by substr(name, length(name)-1)
+
+
+
+// run no.1 first then no.2
+1. create view V as select name||' '||price as data from book_book
+2. select * from V
+
+
+
+select ename,sal,comm
+from (
+  select ename,sal,comm,
+  case when comm is null then 0 else 1 end as is_null
+  from emp
+)as x
+order by is_null desc,comm
+
+
+
+//If you want to filter out duplicates, use the UNION operator else UNION ALL
+select deptno
+ from emp
+ union
+select deptno
+ from dept
+
+select deptno
+ from emp
+ union all
+select deptno
+ from dept
+
+
+
+// INNER JOIN
+select b.name, a.name 
+from book_book b, book_author a
+where b.id = a.id
+
+
+
+// INNER JOIN
+create view V
+as
+select ename,job,sal
+ from emp
+ where job = 'CLERK'
+
+select e.empno,e.ename,e.job,e.sal,e.deptno
+from emp e, V
+where e.ename = v.ename
+and e.job = v.job
+and e.sal = v.sal
+
+	----SAME AS----
+
+select empno,ename,job,sal,deptno from emp
+where (ename,job,sal) in (
+  select ename,job,sal from emp
+  intersect
+  select ename,job,sal from V
+)
+
+
+
+// Retrieving Values from One Table That Do Not Exist inAnother
+select deptno from dept
+except
+select deptno from emp
+
+
+
+//LEFT JOIN
+select e.ename, e.deptno as emp_deptno, d.*
+ from dept d left join emp e
+ on (d.deptno = e.deptno)
+
+
+
+// inner join with multiple intersect
+select e.ename, d.loc,eb.received
+ from emp e, dept d, emp_bonus eb
+ where e.deptno=d.deptno
+ and e.empno=eb.empno
+
+
+
+// Determining Whether Two Tables Have the Same Data
+create view V as (
+  select * from emp where deptno != 10
+   union all
+  select * from emp where ename = 'WARD'
+)
+select * from V
+
+	---MORE EXMAMPLE---
+
+create view S as (
+  select * from book_book where id != 1
+   union all
+  select * from book_book where name like ('%Th%')
+)
+select * from S
+
+
+
+//return the name of each employee in department 10 
+//along with the location of the department. Like groupby by ename
+------
+select e.ename, d.loc
+from emp e, dept d
+where e.deptno = 10
+and d.deptno = e.deptno
+
+
+//find the sum of the salaries for employees 
+//in department 10 along with the sum of their bonuses
+-------
+select deptno,
+  sum(distinct sal) as total_sal,
+  sum(bonus) as total_bonus
+from (
+   select e.empno, 
+          e.ename, 
+          e.sal, 
+          e.deptno, 
+          e.sal*case when eb.type = 1 then .1
+ 		     when eb.type = 2 then .2
+ 		     else .3 end as bonus
+   from emp e, emp_bonus eb
+   where e.empno = eb.empno and e.deptno = 10
+) as x group by deptno
+
+
+
+
+//Use the explicit FULL OUTER JOIN command to 
+//return missing rows from both tables along with matching rows:
+-----
+from dept d full outer join emp e on (d.deptno=e.deptno)
+
+
+
+
+//Use a function such as COALESCE to transform the NULL value 
+//into a real value that can be used in standard evaluation:
+-----
+select ename,comm 
+from emp
+where coalesce(comm,0) < ( select comm from empwhere ename = 'WARD' )
+
+
+

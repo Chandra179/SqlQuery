@@ -1,0 +1,87 @@
+/* multi row insert */
+insert into dept (deptno,dname,loc)
+values (1,'A','B'), (2,'B','C')
+
+
+
+// default values
+create table D (id integer default 0)
+
+
+
+//You want to copy rows from one table to another by using a query
+insert into dept_east (deptno,dname,loc)
+select deptno,dname,loc                  <- VALUES TO INSERT
+from dept
+where loc in ( 'NEW YORK','BOSTON' )
+
+
+
+//You want to create a new table having the same set 
+//of columns as an existing table
+create table dept_2 as select * from dept where 1 = 0
+
+
+
+//Update rows
+update emp
+set sal = sal*1.10
+where deptno = 20
+
+
+
+// if an employee appears in table EMP_BONUS, you want to increase that
+// employee’s salary (in table EMP) by 20%
+update emp
+set sal=sal*1.20
+where empno in ( select empno from emp_bonus )
+
+
+
+// Updating values from another table
+update emp
+set sal = ns.sal,
+comm = ns.sal/2
+from new_sal ns
+where ns.deptno = emp.deptno
+
+
+//
+• If any employee in EMP_COMMISSION also exists in table EMP, then update
+their commission (COMM) to 1000.
+• For all employees who will potentially have their COMM updated to 1000, if their
+SAL is less than 2000, delete them (they should not be exist in EMP_[.keeptogether] COMMISSION).
+• Otherwise, insert the EMPNO, ENAME, and DEPTNO values from table EMP
+into table EMP_COMMISSION.
+
+merge into emp_commission ec
+using (select * from emp) emp
+  on (ec.empno=emp.empno)
+when matched then
+  update set ec.comm = 1000
+  delete where (sal < 2000)
+when not matched then
+  insert (ec.empno,ec.ename,ec.deptno,ec.comm)
+  values (emp.empno,emp.ename,emp.deptno,emp.comm)
+
+
+
+
+// delete single record
+delete from emp where empno = 7782
+
+
+
+
+//
+select 
+  t.ticket_no, 
+  a.full_name as payment name,
+  case 
+    when p.payment_status is 'FAILED' then 0 else p.total_amount 
+    end as total_amount
+from Account as a
+inner join Ticket as t
+on a.id = t.account_id
+inner join Payment as p
+on t.id = p.ticket_id
